@@ -28,16 +28,46 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y masscan jq
 
-      - name: Scan
+      - name: Download IP list
         env:
           COUNTRY: ${{ inputs.country }}
         run: |
-          sudo masscan -p${{ matrix.port }} -iL <(curl -s "https://raw.githubusercontent.com/ipverse/country-ip-blocks/refs/heads/master/country/${COUNTRY,,}/aggregated.json" | jq -r '.prefixes.ipv4[]') --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
+          COUNTRY="${COUNTRY,,}"
+
+          curl -fsSL \
+            "https://raw.githubusercontent.com/ipverse/country-ip-blocks/refs/heads/master/country/${COUNTRY}/aggregated.json" \
+            | jq -r '.prefixes.ipv4[]' \
+            > iplist.txt
+
+          echo "Country: $COUNTRY"
+          echo "Total CIDR: $(wc -l < iplist.txt)"
+          head -n 10 iplist.txt
+
+      - name: Scan
+        run: |
+          sudo masscan \
+            -p${{ matrix.port }} \
+            -iL iplist.txt \
+            --excludefile exclude.txt \
+            --rate 80000 \
+            2>/dev/null \
+            | bun check.js
+
+      - name: Upload IP list
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: iplist-${{ inputs.country }}-port-${{ matrix.port }}
+          path: iplist.txt
+          archive: false
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload prxip.json
         if: always()
         uses: actions/upload-artifact@v7
         with:
+          name: prxip-${{ inputs.country }}-port-${{ matrix.port }}
           path: prxip.json
           archive: false
           if-no-files-found: ignore
