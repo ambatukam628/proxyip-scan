@@ -13,11 +13,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install deps
         run: |
@@ -26,7 +24,7 @@ jobs:
 
       - name: Scan
         run: |
-         sudo masscan -p${{ matrix.port }} -iL input.txt --excludefile exclude.txt --rate 80000
+          sudo masscan -p${{ matrix.port }} -iL input.txt --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
 
       - name: Upload pxip.json
         if: always()
