@@ -1,0 +1,44 @@
+name: Masscan ipverse country
+
+on:
+  workflow_dispatch:
+    inputs:
+      country:
+        description: 'Kode negara (ISO 3166-1 alpha-2, contoh: id, sg, us)'
+        required: true
+        default: 'id'
+        type: string
+
+jobs:
+  scan:
+    strategy:
+      matrix:
+        port: [443, 2053, 2083, 2087, 2096, 8443]
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y masscan jq
+
+      - name: Scan
+        env:
+          COUNTRY: ${{ inputs.country }}
+        run: |
+          sudo masscan -p${{ matrix.port }} -iL <(curl -s "https://raw.githubusercontent.com/ipverse/country-ip-blocks/refs/heads/master/country/${COUNTRY,,}/aggregated.json" | jq -r '.subnets.ipv4[]') --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
+
+      - name: Upload pxip.json
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          path: pxip.json
+          archive: false
+          if-no-files-found: ignore
+          retention-days: 7
