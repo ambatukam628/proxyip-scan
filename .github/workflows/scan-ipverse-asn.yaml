@@ -36,10 +36,6 @@ jobs:
             | jq -r '.prefixes.ipv4[]' \
             > iplist.txt
 
-          echo "ASN: AS${ASN}"
-          echo "Total CIDR: $(wc -l < iplist.txt)"
-          head -n 10 iplist.txt
-
       - name: Scan
         run: |
           sudo masscan \
@@ -50,21 +46,10 @@ jobs:
             2>/dev/null \
             | bun check.js
 
-      - name: Upload IP list
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: iplist-as${{ inputs.asn }}-port-${{ matrix.port }}
-          path: iplist.txt
-          archive: false
-          if-no-files-found: ignore
-          retention-days: 7
-
       - name: Upload prxip.json
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: prxip-as${{ inputs.asn }}-port-${{ matrix.port }}
           path: prxip.json
           archive: false
           if-no-files-found: ignore
