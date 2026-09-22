@@ -1,12 +1,11 @@
-name: Masscan ipverse country
+name: Masscan ipverse ASN
 
 on:
   workflow_dispatch:
     inputs:
-      country:
-        description: 'Kode negara (ISO 3166-1 alpha-2, contoh: id, sg, us)'
+      asn:
+        description: 'Nomor ASN (tanpa prefix "AS", contoh: 13335 untuk Cloudflare)'
         required: true
-        default: 'id'
         type: string
 
 jobs:
@@ -30,18 +29,12 @@ jobs:
 
       - name: Download IP list
         env:
-          COUNTRY: ${{ inputs.country }}
+          ASN: ${{ inputs.asn }}
         run: |
-          COUNTRY="${COUNTRY,,}"
-
           curl -fsSL \
-            "https://raw.githubusercontent.com/ipverse/country-ip-blocks/refs/heads/master/country/${COUNTRY}/aggregated.json" \
+            "https://raw.githubusercontent.com/ipverse/as-ip-blocks/refs/heads/master/as/${ASN}/aggregated.json" \
             | jq -r '.prefixes.ipv4[]' \
             > iplist.txt
-
-          echo "Country: $COUNTRY"
-          echo "Total CIDR: $(wc -l < iplist.txt)"
-          head -n 10 iplist.txt
 
       - name: Scan
         run: |
@@ -53,21 +46,10 @@ jobs:
             2>/dev/null \
             | bun check.js
 
-      - name: Upload IP list
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: iplist-${{ inputs.country }}-port-${{ matrix.port }}
-          path: iplist.txt
-          archive: false
-          if-no-files-found: ignore
-          retention-days: 7
-
       - name: Upload prxip.json
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: prxip-${{ inputs.country }}-port-${{ matrix.port }}
           path: prxip.json
           archive: false
           if-no-files-found: ignore
