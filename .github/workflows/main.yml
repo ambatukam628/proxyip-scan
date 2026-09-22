@@ -28,9 +28,9 @@ jobs:
 
       - name: Upload pxip.json
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: prxip-${{ matrix.port }}
-          path: prxip.json
+          path: pxip.json
+          archive: false
           if-no-files-found: ignore
           retention-days: 7
