@@ -24,7 +24,7 @@ jobs:
 
       - name: Scan
         run: |
-          masscan -p443,2053,2083,2087,2096,8443 -iL input.txt --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
+          masscan -p${{ matrix.port }} -iL input.txt --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
 
       - name: Upload pxip.json
         if: always()
