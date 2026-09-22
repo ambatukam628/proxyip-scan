@@ -13,12 +13,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install deps
         run: |
           sudo apt-get update
           sudo apt-get install -y masscan jq
-          curl -fsSL https://bun.sh/install | bash
 
       - name: Scan
         run: |
