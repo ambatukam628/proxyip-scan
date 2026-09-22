@@ -9,10 +9,10 @@ jobs:
       matrix:
         port: [443, 2053, 2083, 2087, 2096, 8443]
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -28,7 +28,7 @@ jobs:
 
       - name: Upload pxip.json
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: prxip-${{ matrix.port }}
           path: prxip.json
