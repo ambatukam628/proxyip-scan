@@ -1,0 +1,34 @@
+name: Masscan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    strategy:
+      matrix:
+        port: [443, 2053, 2083, 2087, 2096, 8443]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y masscan jq
+          curl -fsSL https://bun.sh/install | bash
+
+      - name: Scan
+        run: |
+          masscan -p443,2053,2083,2087,2096,8443 -iL input.txt --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
+
+      - name: Upload pxip.json
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxip-${{ matrix.port }}
+          path: pxip.json
+          if-no-files-found: ignore
+          retention-days: 7
