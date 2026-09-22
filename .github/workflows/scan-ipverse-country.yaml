@@ -1,11 +1,12 @@
-name: Masscan ipverse ASN
+name: Masscan ipverse country
 
 on:
   workflow_dispatch:
     inputs:
-      asn:
-        description: 'Nomor ASN (tanpa prefix "AS", contoh: 13335 untuk Cloudflare)'
+      country:
+        description: 'Kode negara (ISO 3166-1 alpha-2, contoh: id, sg, us)'
         required: true
+        default: 'id'
         type: string
 
 jobs:
@@ -29,10 +30,12 @@ jobs:
 
       - name: Download IP list
         env:
-          ASN: ${{ inputs.asn }}
+          COUNTRY: ${{ inputs.country }}
         run: |
+          COUNTRY="${COUNTRY,,}"
+
           curl -fsSL \
-            "https://raw.githubusercontent.com/ipverse/as-ip-blocks/refs/heads/master/as/${ASN}/aggregated.json" \
+            "https://raw.githubusercontent.com/ipverse/country-ip-blocks/refs/heads/master/country/${COUNTRY}/aggregated.json" \
             | jq -r '.prefixes.ipv4[]' \
             > iplist.txt
 
