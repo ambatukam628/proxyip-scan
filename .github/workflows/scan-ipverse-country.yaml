@@ -34,11 +34,11 @@ jobs:
         run: |
           sudo masscan -p${{ matrix.port }} -iL <(curl -s "https://raw.githubusercontent.com/ipverse/country-ip-blocks/refs/heads/master/country/${COUNTRY,,}/aggregated.json" | jq -r '.subnets.ipv4[]') --excludefile exclude.txt --rate 80000 2>/dev/null | bun check.js
 
-      - name: Upload pxip.json
+      - name: Upload prxip.json
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          path: pxip.json
+          path: prxip.json
           archive: false
           if-no-files-found: ignore
           retention-days: 7
